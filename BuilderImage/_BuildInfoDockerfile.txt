@@ -1,0 +1,347 @@
+# Copyright 2019 Red Hat
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ------------------------------------------------------------------------
+#
+# This is a Dockerfile for the redhat-openjdk-18/openjdk18-openshift:1.7 image.
+
+
+## START target image redhat-openjdk-18/openjdk18-openshift:1.7
+## \
+FROM sha256:55a1f4beaf8e2d27982b38e3ecfd458c66753cbfd3a09bcf562877fe60255157
+
+    USER root
+
+###### START module 'jboss.container.user:1.0'
+###### \
+        # Copy 'jboss.container.user' module content
+        COPY modules/jboss.container.user /tmp/scripts/jboss.container.user
+        # Switch to 'root' user to install 'jboss.container.user' module defined packages
+        USER root
+        # Install packages defined in the 'jboss.container.user' module
+        RUN yum --setopt=tsflags=nodocs install -y unzip tar rsync shadow-utils \
+            && rpm -q unzip tar rsync shadow-utils
+        # Set 'jboss.container.user' module defined environment variables
+        ENV \
+            HOME="/home/jboss"
+        # Custom scripts from 'jboss.container.user' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.user/configure.sh" ]
+###### /
+###### END module 'jboss.container.user:1.0'
+
+###### START module 'jboss.container.openjdk.jdk:8'
+###### \
+        # Copy 'jboss.container.openjdk.jdk' module content
+        COPY modules/jboss.container.openjdk.jdk /tmp/scripts/jboss.container.openjdk.jdk
+        # Switch to 'root' user to install 'jboss.container.openjdk.jdk' module defined packages
+        USER root
+        # Install packages defined in the 'jboss.container.openjdk.jdk' module
+        RUN yum --setopt=tsflags=nodocs install -y java-1.8.0-openjdk-devel \
+            && rpm -q java-1.8.0-openjdk-devel
+        # Set 'jboss.container.openjdk.jdk' module defined environment variables
+        ENV \
+            JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
+            JAVA_VENDOR="openjdk" \
+            JAVA_VERSION="1.8.0" \
+            JBOSS_CONTAINER_OPENJDK_JDK_MODULE="/opt/jboss/container/openjdk/jdk"
+        # Set 'jboss.container.openjdk.jdk' module defined labels
+        LABEL \
+            org.jboss.product="openjdk"  \
+            org.jboss.product.openjdk.version="1.8.0"  \
+            org.jboss.product.version="1.8.0"
+        # Custom scripts from 'jboss.container.openjdk.jdk' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.openjdk.jdk/configure.sh" ]
+###### /
+###### END module 'jboss.container.openjdk.jdk:8'
+
+###### START module 'jboss.container.s2i.core.api:1.0'
+###### \
+        # Set 'jboss.container.s2i.core.api' module defined environment variables
+        ENV \
+            S2I_SOURCE_DEPLOYMENTS_FILTER="*"
+        # Set 'jboss.container.s2i.core.api' module defined labels
+        LABEL \
+            io.openshift.s2i.destination="/tmp"  \
+            io.openshift.s2i.scripts-url="image:///usr/local/s2i"  \
+            org.jboss.container.deployments-dir="/deployments"
+###### /
+###### END module 'jboss.container.s2i.core.api:1.0'
+
+###### START module 'jboss.container.maven.s2i.api:1.0'
+###### \
+###### /
+###### END module 'jboss.container.maven.s2i.api:1.0'
+
+###### START module 'jboss.container.s2i.core.bash:1.0'
+###### \
+        # Copy 'jboss.container.s2i.core.bash' module content
+        COPY modules/jboss.container.s2i.core.bash /tmp/scripts/jboss.container.s2i.core.bash
+        # Set 'jboss.container.s2i.core.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_S2I_CORE_MODULE="/opt/jboss/container/s2i/core/"
+        # Custom scripts from 'jboss.container.s2i.core.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.s2i.core.bash/configure.sh" ]
+###### /
+###### END module 'jboss.container.s2i.core.bash:1.0'
+
+###### START module 'jboss.container.maven.api:1.0'
+###### \
+###### /
+###### END module 'jboss.container.maven.api:1.0'
+
+###### START module 'jboss.container.java.jvm.api:1.0'
+###### \
+###### /
+###### END module 'jboss.container.java.jvm.api:1.0'
+
+###### START module 'jboss.container.proxy.api:2.0'
+###### \
+###### /
+###### END module 'jboss.container.proxy.api:2.0'
+
+###### START module 'jboss.container.java.proxy.bash:2.0'
+###### \
+        # Copy 'jboss.container.java.proxy.bash' module content
+        COPY modules/jboss.container.java.proxy.bash /tmp/scripts/jboss.container.java.proxy.bash
+        # Set 'jboss.container.java.proxy.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_JAVA_PROXY_MODULE="/opt/jboss/container/java/proxy"
+        # Custom scripts from 'jboss.container.java.proxy.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.proxy.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.proxy.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.java.proxy.bash:2.0'
+
+###### START module 'jboss.container.java.jvm.bash:1.0'
+###### \
+        # Copy 'jboss.container.java.jvm.bash' module content
+        COPY modules/jboss.container.java.jvm.bash /tmp/scripts/jboss.container.java.jvm.bash
+        # Set 'jboss.container.java.jvm.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_JAVA_JVM_MODULE="/opt/jboss/container/java/jvm"
+        # Custom scripts from 'jboss.container.java.jvm.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.jvm.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.jvm.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.java.jvm.bash:1.0'
+
+###### START module 'jboss.container.maven.35.bash:3.5scl'
+###### \
+        # Copy 'jboss.container.maven.35.bash' module content
+        COPY modules/jboss.container.maven.35.bash /tmp/scripts/jboss.container.maven.35.bash
+        # Switch to 'root' user to install 'jboss.container.maven.35.bash' module defined packages
+        USER root
+        # Install packages defined in the 'jboss.container.maven.35.bash' module
+        RUN yum --setopt=tsflags=nodocs install -y rh-maven35 \
+            && rpm -q rh-maven35
+        # Set 'jboss.container.maven.35.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_MAVEN_35_MODULE="/opt/jboss/container/maven/35/" \
+            MAVEN_VERSION="3.5"
+        # Set 'jboss.container.maven.35.bash' module defined labels
+        LABEL \
+            io.fabric8.s2i.version.maven="3.5"
+        # Custom scripts from 'jboss.container.maven.35.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.maven.35.bash/configure.sh" ]
+###### /
+###### END module 'jboss.container.maven.35.bash:3.5scl'
+
+###### START module 'jboss.container.util.logging.bash:1.0'
+###### \
+        # Copy 'jboss.container.util.logging.bash' module content
+        COPY modules/jboss.container.util.logging.bash /tmp/scripts/jboss.container.util.logging.bash
+        # Set 'jboss.container.util.logging.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_UTIL_LOGGING_MODULE="/opt/jboss/container/util/logging/"
+        # Custom scripts from 'jboss.container.util.logging.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.util.logging.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.util.logging.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.util.logging.bash:1.0'
+
+###### START module 'jboss.container.maven.default.bash:1.0'
+###### \
+        # Copy 'jboss.container.maven.default.bash' module content
+        COPY modules/jboss.container.maven.default.bash /tmp/scripts/jboss.container.maven.default.bash
+        # Set 'jboss.container.maven.default.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_MAVEN_DEFAULT_MODULE="/opt/jboss/container/maven/default/"
+        # Custom scripts from 'jboss.container.maven.default.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.maven.default.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.maven.default.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.maven.default.bash:1.0'
+
+###### START module 'jboss.container.maven.s2i.bash:1.0'
+###### \
+        # Copy 'jboss.container.maven.s2i.bash' module content
+        COPY modules/jboss.container.maven.s2i.bash /tmp/scripts/jboss.container.maven.s2i.bash
+        # Set 'jboss.container.maven.s2i.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_MAVEN_S2I_MODULE="/opt/jboss/container/maven/s2i"
+        # Custom scripts from 'jboss.container.maven.s2i.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.maven.s2i.bash/configure.sh" ]
+###### /
+###### END module 'jboss.container.maven.s2i.bash:1.0'
+
+###### START module 'jboss.container.java.run.bash:1.0'
+###### \
+        # Copy 'jboss.container.java.run.bash' module content
+        COPY modules/jboss.container.java.run.bash /tmp/scripts/jboss.container.java.run.bash
+        # Set 'jboss.container.java.run.bash' module defined environment variables
+        ENV \
+            JAVA_DATA_DIR="/deployments/data" \
+            JBOSS_CONTAINER_JAVA_RUN_MODULE="/opt/jboss/container/java/run"
+        # Custom scripts from 'jboss.container.java.run.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.run.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.run.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.java.run.bash:1.0'
+
+###### START module 'jboss.container.jolokia.api:1.0'
+###### \
+        # Set 'jboss.container.jolokia.api' module defined environment variables
+        ENV \
+            AB_JOLOKIA_AUTH_OPENSHIFT="true" \
+            AB_JOLOKIA_HTTPS="true" \
+            AB_JOLOKIA_PASSWORD_RANDOM="true"
+###### /
+###### END module 'jboss.container.jolokia.api:1.0'
+
+###### START module 'jboss.container.jolokia.bash:1.0'
+###### \
+        # Copy 'jboss.container.jolokia.bash' module general artifacts
+        COPY \
+            artifacts/jolokia-jvm-1.6.2.redhat-00002-agent.jar \
+            /tmp/artifacts/
+        # Copy 'jboss.container.jolokia.bash' module content
+        COPY modules/jboss.container.jolokia.bash /tmp/scripts/jboss.container.jolokia.bash
+        # Set 'jboss.container.jolokia.bash' module defined environment variables
+        ENV \
+            AB_JOLOKIA_AUTH_OPENSHIFT="true" \
+            AB_JOLOKIA_HTTPS="true" \
+            AB_JOLOKIA_PASSWORD_RANDOM="true" \
+            JBOSS_CONTAINER_JOLOKIA_MODULE="/opt/jboss/container/jolokia" \
+            JOLOKIA_VERSION="1.6.2"
+        # Set 'jboss.container.jolokia.bash' module defined labels
+        LABEL \
+            io.fabric8.s2i.version.jolokia="1.6.2-redhat-00002"
+        # Exposed ports in 'jboss.container.jolokia.bash' module
+        EXPOSE 8778
+        # Custom scripts from 'jboss.container.jolokia.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.jolokia.bash/configure.sh" ]
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.jolokia.bash/backward_compatibility.sh" ]
+###### /
+###### END module 'jboss.container.jolokia.bash:1.0'
+
+###### START module 'jboss.container.prometheus.api:1.0'
+###### \
+###### /
+###### END module 'jboss.container.prometheus.api:1.0'
+
+###### START module 'jboss.container.prometheus.bash:1.0'
+###### \
+        # Copy 'jboss.container.prometheus.bash' module general artifacts
+        COPY \
+            artifacts/jmx_prometheus_javaagent-0.3.1.redhat-00006.jar \
+            /tmp/artifacts/
+        # Copy 'jboss.container.prometheus.bash' module content
+        COPY modules/jboss.container.prometheus.bash /tmp/scripts/jboss.container.prometheus.bash
+        # Set 'jboss.container.prometheus.bash' module defined environment variables
+        ENV \
+            AB_PROMETHEUS_JMX_EXPORTER_CONFIG="/opt/jboss/container/prometheus/etc/jmx-exporter-config.yaml" \
+            AB_PROMETHEUS_JMX_EXPORTER_PORT="9799" \
+            JBOSS_CONTAINER_PROMETHEUS_MODULE="/opt/jboss/container/prometheus"
+        # Custom scripts from 'jboss.container.prometheus.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.prometheus.bash/configure.sh" ]
+###### /
+###### END module 'jboss.container.prometheus.bash:1.0'
+
+###### START module 'jboss.container.java.s2i.bash:1.0'
+###### \
+        # Copy 'jboss.container.java.s2i.bash' module content
+        COPY modules/jboss.container.java.s2i.bash /tmp/scripts/jboss.container.java.s2i.bash
+        # Set 'jboss.container.java.s2i.bash' module defined environment variables
+        ENV \
+            JBOSS_CONTAINER_JAVA_S2I_MODULE="/opt/jboss/container/java/s2i" \
+            S2I_SOURCE_DEPLOYMENTS_FILTER="*.jar"
+        # Custom scripts from 'jboss.container.java.s2i.bash' module
+        USER root
+        RUN [ "bash", "-x", "/tmp/scripts/jboss.container.java.s2i.bash/configure.sh" ]
+###### /
+###### END module 'jboss.container.java.s2i.bash:1.0'
+
+###### START image 'redhat-openjdk-18/openjdk18-openshift:1.7'
+###### \
+        # Set 'redhat-openjdk-18/openjdk18-openshift' image defined environment variables
+        ENV \
+            JBOSS_IMAGE_NAME="redhat-openjdk-18/openjdk18-openshift" \
+            JBOSS_IMAGE_VERSION="1.7" \
+            PATH="$PATH:"/usr/local/s2i""
+        # Set 'redhat-openjdk-18/openjdk18-openshift' image defined labels
+        LABEL \
+            com.redhat.component="redhat-openjdk-18-openjdk18-openshift-container"  \
+            description="Source To Image (S2I) image for Red Hat OpenShift providing OpenJDK 8"  \
+            io.cekit.version="3.5.0"  \
+            io.k8s.description="Platform for building and running plain Java applications (fat-jar and flat classpath)"  \
+            io.k8s.display-name="Java Applications"  \
+            io.openshift.tags="builder,java"  \
+            maintainer="Red Hat OpenJDK <openjdk@redhat.com>"  \
+            name="redhat-openjdk-18/openjdk18-openshift"  \
+            summary="Source To Image (S2I) image for Red Hat OpenShift providing OpenJDK 8"  \
+            usage="https://access.redhat.com/documentation/en-us/red_hat_jboss_middleware_for_openshift/3/html/red_hat_java_s2i_for_openshift/"  \
+            version="1.7"
+        # Exposed ports in 'redhat-openjdk-18/openjdk18-openshift' image
+        EXPOSE 8080 8443
+###### /
+###### END image 'redhat-openjdk-18/openjdk18-openshift:1.7'
+
+
+    # Switch to 'root' user and remove artifacts and modules
+    USER root
+    RUN [ ! -d /tmp/scripts ] || rm -rf /tmp/scripts
+    RUN [ ! -d /tmp/artifacts ] || rm -rf /tmp/artifacts
+
+    # Clear package manager metadata
+    RUN yum clean all && [ ! -d /var/cache/yum ] || rm -rf /var/cache/yum
+
+    # Define the user
+    USER 185
+    # Define the working directory
+    WORKDIR /home/jboss
+    # Define run cmd
+    CMD ["/usr/local/s2i/run"]
+    ADD help.md /
+## /
+## END target image
+ADD help.1 /help.1
+LABEL "authoritative-source-url"="registry.access.redhat.com" "distribution-scope"="public" "vendor"="Red Hat, Inc." "url"="https://access.redhat.com/containers/#/registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift/images/1.7-5.1575996300" "vcs-type"="git" "architecture"="x86_64" "release"="5.1575996300" "build-date"="2019-12-10T17:45:20.904669" "com.redhat.license_terms"="https://www.redhat.com/en/about/red-hat-end-user-license-agreements" "com.redhat.build-host"="cpt-1005.osbs.prod.upshift.rdu2.redhat.com" "vcs-ref"="c47a11f2fd7bf261b6db74ff9bc60b96e7b1b340"
