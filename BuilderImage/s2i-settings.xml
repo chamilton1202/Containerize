@@ -299,30 +299,30 @@
       <repositories>
         <repository>
           <id>nexus</id>
-		      <name>nexus</name>
+          <name>nexus</name>
           <url>https://custom-nexus.somecompany.com/repository/maven-public/</url>
           <releases>
             <enabled>true</enabled>
-			      <updatePolicy>always</updatePolicy>
+            <updatePolicy>always</updatePolicy>
           </releases>
           <snapshots>
             <enabled>true</enabled>
-			      <updatePolicy>always</updatePolicy>
+            <updatePolicy>always</updatePolicy>
           </snapshots>
         </repository>
       </repositories>
       <pluginRepositories>
         <pluginRepository>
           <id>nexus</id>
-		      <name>nexus</name>
+          <name>nexus</name>
           <url>https://custom-nexus.somecompany.com/repository/maven-public/</url>
           <releases>
             <enabled>true</enabled>
-			      <updatePolicy>always</updatePolicy>
+            <updatePolicy>always</updatePolicy>
           </releases>
           <snapshots>
             <enabled>true</enabled>
-			      <updatePolicy>always</updatePolicy>
+            <updatePolicy>always</updatePolicy>
           </snapshots>
         </pluginRepository>
       </pluginRepositories>
