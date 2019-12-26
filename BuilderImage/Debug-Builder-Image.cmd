@@ -16,5 +16,6 @@ oc run -i -t builder --image=docker-registry.default.svc:5000/%OPENSHIFT_PROJECT
 
 REM Script finished
 echo Debug the Builder Image script has completed
+echo Remember to remove the debugging pods after - oc delete dc/builder
 echo.
 pause
